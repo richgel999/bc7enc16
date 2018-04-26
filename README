@@ -17,18 +17,18 @@ partitions, making it far higher quality than BC1.
 Some benchmarks across 31 images (kodim corpus+others):
 
 iscp_texcomp slow vs. bc7enc16 uber0 perceptual (avg REC709 Luma PSNR):
-iscp_texcomp: 	355.4 secs 48.57 dB
-bc7enc16: 		38.3  secs 49.57 dB
+iscp_texcomp:   355.4 secs 48.57 dB
+bc7enc16:       38.3  secs 49.57 dB
 
 iscp_texcomp fast vs. bc7enc16 uber0/max_partitions 16 perceptual (avg REC709 Luma PSNR):
-iscp_texcomp: 	41.6  secs 48.00 dB 
-bc7enc16: 		20.8  secs 49.3 dB
+iscp_texcomp:   41.6  secs 48.00 dB 
+bc7enc16:       20.8  secs 49.3 dB
 
 iscp_texcomp slow vs. bc7enc16 uber0 non-perceptual (avg RGB PSNR):
-iscp_texcomp: 	354.4 secs 46.8 dB
-bc7enc16: 		29.3  secs 45.8 dB
+iscp_texcomp:   354.4 secs 46.8 dB
+bc7enc16:       29.3  secs 45.8 dB
 
 iscp_texcomp slow vs. bc7enc16 uber4 non-perceptual (avg RGB PSNR):
-iscp_texcomp: 	354.1 secs 46.8 dB
-bc7enc16: 		51.3  secs 46.1 dB
+iscp_texcomp:   354.1 secs 46.8 dB
+bc7enc16:       51.3  secs 46.1 dB
 
