@@ -32,3 +32,6 @@ iscp_texcomp slow vs. bc7enc16 uber4 non-perceptual (avg RGB PSNR):
 iscp_texcomp:   354.1 secs 46.8 dB
 bc7enc16:       51.3  secs 46.1 dB
 
+This was a multithreaded benchmark (using OpenMP) on a dual Xeon workstation.
+ispc_texcomp was called with 64-blocks at a time. Timings are for encoding time
+only.
