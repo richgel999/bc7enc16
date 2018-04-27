@@ -87,6 +87,11 @@ DirectXTex CPU in "mode 6 only" mode vs. bc7enc16 uber1/max_partions 0 (mode 6 o
 DirectXTex:     466.4 secs 41.9 dB 
 bc7enc16:       6.7 secs 42.8 dB
 
+DirectXTex CPU in (default - no 3 subset modes) vs. bc7enc16 uber1/max_partions 64, non-perceptual:
+
+DirectXTex: 	9485.1 secs 45.6 dB 
+bc7enc16: 		36 secs 46.0 dB
+
 (Note this version of DirectXTex has a key pbit bugfix which I've submitted but
 is still waiting to be accepted. Non-bugfixed versions will be slightly lower
 quality.)
