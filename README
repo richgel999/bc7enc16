@@ -28,7 +28,7 @@ encoders.
 
 Some benchmarks across 31 images (kodim corpus+others):
 
-Perceptual (average REC709 Luma PSNR - higher is better qualiy):
+Perceptual (average REC709 Luma PSNR - higher is better quality):
 
 iscp_texcomp slow vs. bc7enc16 uber4/max_partitions 64
 iscp_texcomp:   355.4 secs 48.6 dB
