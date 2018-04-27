@@ -30,35 +30,51 @@ Some benchmarks across 31 images (kodim corpus+others):
 
 Perceptual (average REC709 Luma PSNR - higher is better qualiy):
 
-iscp_texcomp slow vs. bc7enc16 uber0
+iscp_texcomp slow vs. bc7enc16 uber4/max_partitions 64
 iscp_texcomp:   355.4 secs 48.6 dB
-bc7enc16:       38.3  secs 49.6 dB
+bc7enc16:       122.6 secs 50.0 dB
+
+iscp_texcomp slow vs. bc7enc16 uber0/max_partitions 64
+iscp_texcomp:   355.4 secs 48.6 dB
+bc7enc16:       38.3 secs 49.6 dB
+
+iscp_texcomp basic vs. bc7enc16 uber0/max_partitions 16
+ispc_texcomp: 	100.2 secs 48.3 dB
+bc7enc16: 		20.8 secs 49.3 dB 
 
 iscp_texcomp fast vs. bc7enc16 uber0/max_partitions 16
-iscp_texcomp:   41.6  secs 48.0 dB 
-bc7enc16:       20.8  secs 49.3 dB
+iscp_texcomp:   41.5 secs 48.0 dB 
+bc7enc16:       20.8 secs 49.3 dB
+
+iscp_texcomp ultrafast vs. bc7enc16 uber0/max_partitions 0
+iscp_texcomp:   1.9 secs 46.2 dB
+bc7enc16:       8.9 secs 48.4 dB 
 
 Non-perceptual (average RGB PSNR):
 
 iscp_texcomp slow vs. bc7enc16 uber4/max_partitions 64
-iscp_texcomp:   356.5 secs 46.8 dB 
+iscp_texcomp:   355.4 secs 46.8 dB 
 bc7enc16:       51 secs 46.1 dB
 
 iscp_texcomp slow vs. bc7enc16 uber0/max_partitions 64
-iscp_texcomp:   354.4 secs 46.8 dB
+iscp_texcomp:   355.4 secs 46.8 dB
 bc7enc16:       29.3  secs 45.8 dB
 
 iscp_texcomp basic vs. bc7enc16 uber4/max_partitions 64
 iscp_texcomp:   99.9 secs 46.5 dB
-bc7enc16:       51.4  secs 46.1 dB
+bc7enc16:       51  secs 46.1 dB
 
 iscp_texcomp fast vs. bc7enc16 uber1/max_partitions 16
-ispc_texcomp: 	41.6 secs 46.1 dB
+ispc_texcomp: 	41.5 secs 46.1 dB
 bc7enc16: 		19.8 secs 45.5 dB
 
 iscp_texcomp fast vs. bc7enc16 uber0/max_partitions 8
 ispc_texcomp: 	41.5 secs 46.1 dB
 bc7enc16: 		10.46 secs 44.4 dB
+
+iscp_texcomp ultrafast vs. bc7enc16 uber0/max_partitions 0
+ispc_texcomp: 	1.9 secs 42.7 dB 
+bc7enc16:		3.790166 42.7 dB
 
 This was a multithreaded benchmark (using OpenMP) on a dual Xeon workstation.
 ispc_texcomp was called with 64-blocks at a time. Timings are for encoding time
