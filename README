@@ -32,6 +32,22 @@ codec produces output that is far higher quality than any BC1 encoder, and
 approaches (or in perceptual mode exceeds!) the quality of other full BC7
 encoders.
 
+Why is bc7enc16 so fast in perceptual mode?
+Computing error in YCbCr space is more expensive than in RGB space, yet bc7enc16
+in perceptual mode is stronger than ispc_texcomp (see the benchmark below) -
+even without SSE/AVX vectorization and with only 2 modes to work with!
+
+Most BC7 encoders only support linear RGB colorspace metrics, which is a
+fundamental weakness. Some support weighted RGB metrics, which is better. With
+linear RGB metrics, encoding error is roughly balanced between each channel, and
+encoders have to work *very* hard (examining large amounts of RGB search space)
+to get overall quality up. With perceptual colorspace metrics, RGB error tends
+to become a bit unbalanced, with green quality favored more highly than red and
+blue, and blue quality favored the least. A perceptual encoder is tuned to
+prefer exploring solutions along the luma axis, where it's much less work to find
+solutions with less luma error. bc7enc16 is, as far as I know, the first BC7
+codec to support computing error in weighted YCbCr colorspace.
+
 Some benchmarks across 31 images (kodim corpus+others):
 
 Perceptual (average REC709 Luma PSNR - higher is better quality):
