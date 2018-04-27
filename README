@@ -84,8 +84,8 @@ bc7enc16:       3.8 secs 42.7 dB
 
 bc7enc16 vs. DirectXTex in mode 6 only (BC_FLAGS_FORCE_BC7_MODE6) non-perceptual:
 
-DirectXTex: 	466.4 secs 41.9 dB 
-bc7enc16: 		35.4 secs 46.0 dB
+DirectXTex:     466.4 secs 41.9 dB 
+bc7enc16:       35.4 secs 46.0 dB
 
 (Note this version of DirectXTex has a key pbit bugfix which I've submitted but
 is still waiting to be accepted. Non-bugfixed versions will be slightly lower
