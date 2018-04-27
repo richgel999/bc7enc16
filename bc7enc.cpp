@@ -311,6 +311,8 @@ typedef std::vector<bc7_block> bc7_block_vec;
 
 static bool save_bc7_dds(const char *pFilename, uint32_t width, uint32_t height, const bc7_block *pBlocks, bool srgb)
 {
+	(void)srgb;
+
 	FILE *pFile = NULL;
 	fopen_s(&pFile, pFilename, "wb");
 	if (!pFile)
@@ -348,7 +350,10 @@ static bool save_bc7_dds(const char *pFilename, uint32_t width, uint32_t height,
 	DDS_HEADER_DXT10 hdr10;
 	memset(&hdr10, 0, sizeof(hdr10));
 
-	hdr10.dxgiFormat = srgb ? DXGI_FORMAT_BC7_UNORM_SRGB : DXGI_FORMAT_BC7_UNORM;
+	// Not all tools support DXGI_FORMAT_BC7_UNORM_SRGB (like NVTT), but ddsview in DirectXTex pays attention to it. So not sure what to do here.
+	// For best compatibility just write DXGI_FORMAT_BC7_UNORM.
+	//hdr10.dxgiFormat = srgb ? DXGI_FORMAT_BC7_UNORM_SRGB : DXGI_FORMAT_BC7_UNORM;
+	hdr10.dxgiFormat = DXGI_FORMAT_BC7_UNORM;
 	hdr10.resourceDimension = D3D10_RESOURCE_DIMENSION_TEXTURE2D;
 	hdr10.arraySize = 1;
 
