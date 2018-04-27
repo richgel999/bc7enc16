@@ -11,11 +11,11 @@ If alpha is highly correlated compared to RGB, or alpha is relatively simple
 all-opaque), it should work great. For complex alpha channels more modes (such
 as 4, 5 or maybe 7) are necessary.
 
-This codec supports computing a perceptual mode, where it computes colorspace
-error in weighted YCbCr space (like etc2comp) or in weighted RGBA space. It's
-particular strong in perceptual mode, beating the current state of the art CPU
-encoder by a wide margin, even though it only supports 2 modes and isn't
-vectorized.
+This codec supports a perceptual mode, where it computes colorspace error in
+weighted YCbCr space (like etc2comp), and it also supports weighted RGBA
+metrics. It's particular strong in perceptual mode, beating the current state of
+the art CPU encoder (Intel's ispc_texcomp) by a wide margin when measured by
+Luma PSNR, even though it only supports 2 modes and isn't vectorized.
 
 Why only modes 1 and 6?
 Because with these two modes you have a complete encoder that supports both
