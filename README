@@ -64,11 +64,11 @@ bc7enc16:       51 secs 46.1 dB
 
 iscp_texcomp slow vs. bc7enc16 uber0/max_partitions 64
 iscp_texcomp:   355.4 secs 46.8 dB
-bc7enc16:       29.3  secs 45.8 dB
+bc7enc16:       29.3 secs 45.8 dB
 
 iscp_texcomp basic vs. bc7enc16 uber4/max_partitions 64
 iscp_texcomp:   99.9 secs 46.5 dB
-bc7enc16:       51  secs 46.1 dB
+bc7enc16:       51 secs 46.1 dB
 
 iscp_texcomp fast vs. bc7enc16 uber1/max_partitions 16
 ispc_texcomp:   41.5 secs 46.1 dB
@@ -82,7 +82,7 @@ iscp_texcomp ultrafast vs. bc7enc16 uber0/max_partitions 0
 ispc_texcomp:   1.9 secs 42.7 dB 
 bc7enc16:       3.8 secs 42.7 dB
 
-DirectXTex in "mode 6 only" mode vs. bc7enc16 uber1/max_partions 0 (mode 6 only), non-perceptual:
+DirectXTex CPU in "mode 6 only" mode vs. bc7enc16 uber1/max_partions 0 (mode 6 only), non-perceptual:
 
 DirectXTex:     466.4 secs 41.9 dB 
 bc7enc16:       6.7 secs 42.8 dB
