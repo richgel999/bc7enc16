@@ -74,7 +74,7 @@ bc7enc16:       10.46 secs 44.4 dB
 
 iscp_texcomp ultrafast vs. bc7enc16 uber0/max_partitions 0
 ispc_texcomp:   1.9 secs 42.7 dB 
-bc7enc16:       3.790166 42.7 dB
+bc7enc16:       3.8 secs 42.7 dB
 
 This was a multithreaded benchmark (using OpenMP) on a dual Xeon workstation.
 ispc_texcomp was called with 64-blocks at a time. Timings are for encoding time
