@@ -96,6 +96,15 @@ bc7enc16:       36 secs 46.0 dB
 is still waiting to be accepted. Non-bugfixed versions will be slightly lower
 quality.)
 
+To illustrate how strong the mode 1+6 implementation is in bc7enc16, let's compare ispc_texcomp 
+fast vs. bc7enc16 uber4/max_partitions 64:
+
+ispc_texcomp:   41.5 secs 46.1 dB
+bc7enc16:       51 secs 46.1 dB
+
+They both have the same average RGB PSNR with these settings, but bc7enc16 is
+only ~23% slower even though it's not vectorized.
+
 This was a multithreaded benchmark (using OpenMP) on a dual Xeon workstation.
-ispc_texcomp was called with 64-blocks at a time. Timings are for encoding time
-only.
+ispc_texcomp was called with 64-blocks at a time and used AVX instructions.
+Timings are for encoding only.
