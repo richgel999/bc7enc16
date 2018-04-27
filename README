@@ -3,20 +3,31 @@ bc7enc16 - Fast, single source file BC7/BPTC GPU texture encoder with perceptual
 <work in progress - only tested under Windows with VS2015 x64 so far>
 
 Supports modes 1 and 6. This is a strong opaque texture encoder, with basic
-support for alpha channels (using mode 6). If alpha is highly correlated
-compared to RGB, or it's relatively simple (think straightforward masks where
-lots of blocks are either all-transparent or all-opaque), it should work great.
-For complex alpha channels more modes (such as 4,5 or maybe 7) are necessary.
+support for alpha channels (using mode 6). The intended use case is opaque
+textures, or opaque textures with relatively simple alpha channels.
+
+If alpha is highly correlated compared to RGB, or it's relatively simple (think
+straightforward masks where lots of blocks are either all-transparent or
+all-opaque), it should work great. For complex alpha channels more modes (such
+as 4,5 or maybe 7) are necessary. 
 
 Why only modes 1 and 6?
-Because with these 2 modes you have a complete encoder that supports both opaque
-and transparent textures. Modes 1 and 6 are typically the most used modes on
-many textures with other encoders. Mode 1 has 2 subsets, 3-bit indices and 64
-partitions, making it far higher quality than BC1. 
+Because with these two modes you have a complete encoder that supports both
+opaque and transparent textures in a small amount (~1400 lines) of
+understandable plain C code. Mode 6 is strong with smooth blocks, and mode 1 is
+strong with complex blocks, and an encoder that fully exploits both modes can be
+quite high quality. 
+
+Modes 1 and 6 are typically the most used modes on many textures using other
+encoders. Mode 1 has two subsets, 64 possible partitions, and 3-bit indices,
+while mode 6 has large 4-bit indices and high precision 7777.1 endpoints. This
+codec produces output that is far higher quality than any BC1 encoder, and
+approaches (or in perceptual mode exceeds!) the quality of other full BC7
+encoders.
 
 Some benchmarks across 31 images (kodim corpus+others):
 
-iscp_texcomp slow vs. bc7enc16 uber0 perceptual (avg REC709 Luma PSNR):
+iscp_texcomp slow vs. bc7enc16 uber0 perceptual (avg REC709 Luma PSNR - higher is better quality):
 iscp_texcomp:   355.4 secs 48.57 dB
 bc7enc16:       38.3  secs 49.57 dB
 
