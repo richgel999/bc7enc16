@@ -6,10 +6,10 @@ Supports modes 1 and 6. This is a strong opaque texture encoder, with basic
 support for alpha channels (using mode 6). The intended use case is opaque
 textures, or opaque textures with relatively simple alpha channels.
 
-If alpha is highly correlated compared to RGB, or it's relatively simple (think
-straightforward masks where lots of blocks are either all-transparent or
+If alpha is highly correlated compared to RGB, or alpha is relatively simple
+(think simple masks where lots of blocks are either all-transparent or
 all-opaque), it should work great. For complex alpha channels more modes (such
-as 4, 5 or maybe 7) are necessary. 
+as 4, 5 or maybe 7) are necessary.
 
 This codec supports computing a perceptual mode, where it computes colorspace
 error in weighted YCbCr space (like etc2comp) or in weighted RGBA space. It's
@@ -21,9 +21,9 @@ Why only modes 1 and 6?
 Because with these two modes you have a complete encoder that supports both
 opaque and transparent textures in a small amount (~1400 lines) of
 understandable plain C code. Mode 6 excels on smooth blocks, and mode 1 is
-strong with complex blocks, and an encoder that fully exploits both modes can be
+strong with complex blocks, and a strong encoder that combines both modes can be
 quite high quality. Fast mode 6-only encoders will have noticeable block
-artifacts, which this codec avoids by fully supporting mode 1.
+artifacts which this codec avoids by fully supporting mode 1.
 
 Modes 1 and 6 are typically the most used modes on many textures using other
 encoders. Mode 1 has two subsets, 64 possible partitions, and 3-bit indices,
