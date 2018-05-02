@@ -1,7 +1,5 @@
 bc7enc16 - Fast, single source file BC7/BPTC GPU texture encoder with perceptual colorspace metric support
 
-<work in progress - only tested under Windows with VS2015 x64 so far>
-
 Supports modes 1 and 6. This is a strong opaque texture encoder, with basic
 support for alpha channels (using mode 6). The intended use case is opaque
 textures, or opaque textures with relatively simple alpha channels.
