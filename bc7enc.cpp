@@ -314,7 +314,7 @@ static bool save_bc7_dds(const char *pFilename, uint32_t width, uint32_t height,
 	(void)srgb;
 
 	FILE *pFile = NULL;
-	fopen_s(&pFile, pFilename, "wb");
+	pFile = fopen(pFilename, "wb");
 	if (!pFile)
 	{
 		fprintf(stderr, "Failed creating file %s!\n", pFilename);

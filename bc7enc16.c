@@ -3,6 +3,7 @@
 #include <math.h>
 #include <memory.h>
 #include <assert.h>
+#include <limits.h>
 
 // Helpers
 static inline int32_t clampi(int32_t value, int32_t low, int32_t high) { if (value < low) value = low; else if (value > high) value = high;	return value; }
