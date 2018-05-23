@@ -1099,6 +1099,9 @@ static uint32_t estimate_partition(const color_quad_u8 *pPixels, const bc7enc16_
 			best_partition = partition;
 		}
 
+		// If the checkerboard pattern doesn't get the highest ranking vs. the previous (lower frequency) patterns, then just stop now because statistically the subsequent patterns won't do well either.
+		if ((partition == 34) && (best_partition != 34))
+			break;
 	} // partition
 
 	return best_partition;
