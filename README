@@ -1,8 +1,8 @@
 bc7enc16 - Fast, single source file BC7/BPTC GPU texture encoder with perceptual colorspace metric support
 
 Note: Most of the timings here (except for the ispc_texcomp "fast" mode timings at the very bottom)
-are for the original release. The latest version of bc7enc16.c is around 8-27% faster than the initial release
-at same quality (when mode 1 is enabled - there's no change with just mode 6).
+are for the original release. The latest version of bc7enc16.c is around 8-27% faster than the 
+initial release at same quality (when mode 1 is enabled - there's no change with just mode 6).
 
 Supports modes 1 and 6. This is a strong opaque texture encoder, with basic
 support for alpha channels (using mode 6). The intended use case is opaque
