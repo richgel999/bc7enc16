@@ -1070,6 +1070,48 @@ static uint64_t color_cell_compression_est(uint32_t num_pixels, const color_quad
 	return total_err;
 }
 
+// This table contains bitmasks indicating which "key" partitions must be best ranked before this partition is worth evaluating.
+// We first rank the best/most used 14 partitions (sorted by usefulness), record the best one found as the key partition, then use 
+// that to control the other partitions to evaluate. The quality loss is ~.08 dB RGB PSNR, the perf gain is up to ~11% (at uber level 0).
+static const uint32_t g_partition_predictors[35] =
+{
+	UINT32_MAX,
+	UINT32_MAX,
+	UINT32_MAX,
+	UINT32_MAX,
+	UINT32_MAX,
+	(1 << 1) | (1 << 2) | (1 << 8),
+	(1 << 1) | (1 << 3) | (1 << 7),
+	UINT32_MAX,
+	UINT32_MAX,
+	(1 << 2) | (1 << 8) | (1 << 16),
+	(1 << 7) | (1 << 3) | (1 << 15),
+	UINT32_MAX,
+	(1 << 8) | (1 << 14) | (1 << 16),
+	(1 << 7) | (1 << 14) | (1 << 15),
+	UINT32_MAX,
+	UINT32_MAX,
+	UINT32_MAX,
+	UINT32_MAX,
+	(1 << 14) | (1 << 15),
+	(1 << 16) | (1 << 22) | (1 << 14),
+	(1 << 17) | (1 << 24) | (1 << 14),
+	(1 << 2) | (1 << 14) | (1 << 15) || (1 << 1),
+	UINT32_MAX,
+	(1 << 1) | (1 << 3) | (1 << 14) | (1 << 16) | (1 << 22),
+	UINT32_MAX,
+	(1 << 1) | (1 << 2) | (1 << 15) | (1 << 17) | (1 << 24),
+	(1 << 1) | (1 << 3) | (1 << 22),
+	UINT32_MAX,
+	UINT32_MAX,
+	UINT32_MAX,
+	(1 << 14) | (1 << 15) | (1 << 16) | (1 << 17),
+	UINT32_MAX,
+	UINT32_MAX,
+	(1 << 1) | (1 << 2) | (1 << 3) | (1 << 27) | (1 << 4) | (1 << 24),
+	(1 << 14) | (1 << 15) | (1 << 16) | (1 << 11) | (1 << 17) | (1 << 27)
+};
+
 // Estimate the partition used by mode 1. This scans through each partition and computes an approximate error for each.
 static uint32_t estimate_partition(const color_quad_u8 *pPixels, const bc7enc16_compress_block_params *pComp_params, uint32_t pweights[4])
 {
@@ -1096,9 +1138,27 @@ static uint32_t estimate_partition(const color_quad_u8 *pPixels, const bc7enc16_
 
 	assert(s_sorted_partition_order[34] == 34);
 
+	int best_key_partition = 0;
+
 	for (uint32_t partition_iter = 0; (partition_iter < total_partitions) && (best_err > 0); partition_iter++)
 	{
 		const uint32_t partition = s_sorted_partition_order[partition_iter];
+
+		// Check to see if we should bother evaluating this partition at all, depending on the best partition found from the first 14.
+		if (pComp_params->m_mode1_partition_estimation_filterbank)
+		{
+			if ((partition_iter >= 14) && (partition_iter <= 34))
+			{
+				const uint32_t best_key_partition_bitmask = 1 << (best_key_partition + 1);
+				if ((g_partition_predictors[partition] & best_key_partition_bitmask) == 0)
+				{
+					if (partition_iter == 34)
+						break;
+
+					continue;
+				}
+			}
+		}
 
 		const uint8_t *pPartition = &g_bc7_partition2[partition * 16];
 
@@ -1120,6 +1180,9 @@ static uint32_t estimate_partition(const color_quad_u8 *pPixels, const bc7enc16_
 		// If the checkerboard pattern doesn't get the highest ranking vs. the previous (lower frequency) patterns, then just stop now because statistically the subsequent patterns won't do well either.
 		if ((partition == 34) && (best_partition != 34))
 			break;
+
+		if (partition_iter == 13)
+			best_key_partition = best_partition;
 
 	} // partition
 

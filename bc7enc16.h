@@ -30,6 +30,11 @@ typedef struct
 
 	// Set m_try_least_squares to false for slightly faster/lower quality compression.
 	bc7enc16_bool m_try_least_squares;
+	
+	// When m_mode1_partition_estimation_filterbank, the mode1 partition estimator skips lesser used partition patterns unless they are strongly predicted to be potentially useful.
+	// There's a slight loss in quality with this enabled (around .08 dB RGB PSNR or .05 dB Y PSNR), but up to a 11% gain in speed depending on the other settings.
+	bc7enc16_bool m_mode1_partition_estimation_filterbank;
+
 } bc7enc16_compress_block_params;
 
 inline void bc7enc16_compress_block_params_init_linear_weights(bc7enc16_compress_block_params *p)
@@ -54,6 +59,7 @@ inline void bc7enc16_compress_block_params_init(bc7enc16_compress_block_params *
 {
 	p->m_max_partitions_mode1 = BC7ENC16_MAX_PARTITIONS1;
 	p->m_try_least_squares = BC7ENC16_TRUE;
+	p->m_mode1_partition_estimation_filterbank = BC7ENC16_TRUE;
 	p->m_uber_level = 0;
 	bc7enc16_compress_block_params_init_perceptual_weights(p);
 }
