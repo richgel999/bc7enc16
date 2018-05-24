@@ -1080,8 +1080,26 @@ static uint32_t estimate_partition(const color_quad_u8 *pPixels, const bc7enc16_
 	uint64_t best_err = UINT64_MAX;
 	uint32_t best_partition = 0;
 
-	for (uint32_t partition = 0; (partition < total_partitions) && (best_err > 0); partition++)
+	// Partition order sorted by usage frequency across a large test corpus. Pattern 34 (checkerboard) must appear in slot 34.
+	// Using a sorted order allows the user to decrease the # of partitions to scan with minimal loss in quality.
+	static const uint8_t s_sorted_partition_order[64] =
 	{
+		1 - 1, 14 - 1, 2 - 1, 3 - 1, 16 - 1, 15 - 1, 11 - 1, 17 - 1,
+		4 - 1, 24 - 1, 27 - 1, 7 - 1, 8 - 1, 22 - 1, 20 - 1, 30 - 1,
+		9 - 1, 5 - 1, 10 - 1, 21 - 1, 6 - 1, 32 - 1, 23 - 1, 18 - 1,
+		19 - 1, 12 - 1, 13 - 1, 31 - 1, 25 - 1, 26 - 1, 29 - 1, 28 - 1,
+		33 - 1, 34 - 1, 35 - 1, 46 - 1, 47 - 1, 52 - 1, 50 - 1, 51 - 1,
+		49 - 1, 39 - 1, 40 - 1, 38 - 1, 54 - 1, 53 - 1, 55 - 1, 37 - 1,
+		58 - 1, 59 - 1, 56 - 1, 42 - 1, 41 - 1, 43 - 1, 44 - 1, 60 - 1,
+		45 - 1, 57 - 1, 48 - 1, 36 - 1, 61 - 1, 64 - 1, 63 - 1, 62 - 1
+	};
+
+	assert(s_sorted_partition_order[34] == 34);
+
+	for (uint32_t partition_iter = 0; (partition_iter < total_partitions) && (best_err > 0); partition_iter++)
+	{
+		const uint32_t partition = s_sorted_partition_order[partition_iter];
+
 		const uint8_t *pPartition = &g_bc7_partition2[partition * 16];
 
 		color_quad_u8 subset_colors[2][16];
@@ -1102,6 +1120,7 @@ static uint32_t estimate_partition(const color_quad_u8 *pPixels, const bc7enc16_
 		// If the checkerboard pattern doesn't get the highest ranking vs. the previous (lower frequency) patterns, then just stop now because statistically the subsequent patterns won't do well either.
 		if ((partition == 34) && (best_partition != 34))
 			break;
+
 	} // partition
 
 	return best_partition;
@@ -1280,8 +1299,7 @@ static void handle_opaque_block(void *pBlock, const color_quad_u8 *pPixels, cons
 	// Mode 1
 	if ((best_err > 0) && (pComp_params->m_max_partitions_mode1 > 0))
 	{
-		const uint32_t trial_partition  = estimate_partition(pPixels, pComp_params, pParams->m_weights);
-
+		const uint32_t trial_partition = estimate_partition(pPixels, pComp_params, pParams->m_weights);
 		pParams->m_pSelector_weights = g_bc7_weights3;
 		pParams->m_pSelector_weightsx = (const vec4F *)g_bc7_weights3x;
 		pParams->m_num_selector_weights = 8;
@@ -1290,11 +1308,11 @@ static void handle_opaque_block(void *pBlock, const color_quad_u8 *pPixels, cons
 		pParams->m_endpoints_share_pbit = BC7ENC16_TRUE;
 
 		const uint8_t *pPartition = &g_bc7_partition2[trial_partition * 16];
-						
+
 		color_quad_u8 subset_colors[2][16];
 
 		uint32_t subset_total_colors1[2] = { 0, 0 };
-				
+
 		uint8_t subset_pixel_index1[2][16];
 		uint8_t subset_selectors1[2][16];
 		color_cell_compressor_results subset_results1[2];
@@ -1306,7 +1324,7 @@ static void handle_opaque_block(void *pBlock, const color_quad_u8 *pPixels, cons
 			subset_pixel_index1[p][subset_total_colors1[p]] = (uint8_t)idx;
 			subset_total_colors1[p]++;
 		}
-								
+
 		uint64_t trial_err = 0;
 		for (uint32_t subset = 0; subset < 2; subset++)
 		{
@@ -1320,7 +1338,7 @@ static void handle_opaque_block(void *pBlock, const color_quad_u8 *pPixels, cons
 			trial_err += err;
 			if (trial_err > best_err)
 				break;
-					
+
 		} // subset
 
 		if (trial_err < best_err)

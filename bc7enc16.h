@@ -16,10 +16,19 @@ typedef uint8_t bc7enc16_bool;
 
 typedef struct
 {
+	// m_max_partitions_mode1 may range from 0 (disables mode 1) to BC7ENC16_MAX_PARTITIONS1. The higher this value, the slower the compressor, but the higher the quality.
 	uint32_t m_max_partitions_mode1;
+	
+	// Relative RGBA or YCbCrA weights.
 	uint32_t m_weights[4];
+	
+	// m_uber_level may range from 0 to BC7ENC16_MAX_UBER_LEVEL. The higher this value, the slower the compressor, but the higher the quality.
 	uint32_t m_uber_level;
+
+	// If m_perceptual is true, colorspace error is computed in YCbCr space, otherwise RGB.
 	bc7enc16_bool m_perceptual;
+
+	// Set m_try_least_squares to false for slightly faster/lower quality compression.
 	bc7enc16_bool m_try_least_squares;
 } bc7enc16_compress_block_params;
 
