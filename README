@@ -1,10 +1,12 @@
 bc7enc16 - Fast, single source file BC7/BPTC GPU texture encoder with perceptual colorspace metric support
 
-Note: Most of the timings here (except for the ispc_texcomp "fast" mode timings at the very bottom)
-are for the original release. The latest version of bc7enc16.c is around 8-27% faster than the 
-initial release at same quality (when mode 1 is enabled - there's no change with just mode 6).
+This project is basically a demo of some of the techniques we use in Basis BC7,
+which is Binomial's state of the art vectorized BC7 encoder. Basis BC7 is the
+highest quality and fastest CPU BC7 encoder available (2-3x faster than
+ispc_texcomp). It supports all modes and linear/perceptual colorspace metrics.
+Licensees get full ISPC source code so they can customize the codec as needed.
 
-Supports modes 1 and 6. This is a strong opaque texture encoder, with basic
+bc7enc16 purposely only supports modes 1 and 6. This is a strong opaque texture encoder, with basic
 support for alpha channels (using mode 6). The intended use case is opaque
 textures, or opaque textures with relatively simple alpha channels.
 
@@ -49,6 +51,11 @@ blue, and blue quality favored the least. A perceptual encoder is tuned to
 prefer exploring solutions along the luma axis, where it's much less work to find
 solutions with less luma error. bc7enc16 is, as far as I know, the first BC7
 codec to support computing error in weighted YCbCr colorspace.
+
+Note: Most of the timings here (except for the ispc_texcomp "fast" mode timings at the very bottom)
+are for the *original* release, before I added several more optimizations. The latest version of 
+bc7enc16.c is around 8-27% faster than the initial release at same quality (when mode 1 is enabled - 
+there's no change with just mode 6).
 
 Some benchmarks across 31 images (kodim corpus+others):
 
@@ -114,14 +121,21 @@ bc7enc16:       36 secs 46.0 dB
 is still waiting to be accepted. Non-bugfixed versions will be slightly lower
 quality.)
 
-To illustrate how strong the mode 1+6 implementation is in bc7enc16, let's compare ispc_texcomp 
-fast vs. bc7enc16 uber4/max_partitions 64:
+UPDATE: To illustrate how strong the mode 1+6 implementation is in bc7enc16, let's compare ispc_texcomp 
+fast vs. the latest version of bc7enc16 uber4/max_partitions 64:
 
-ispc_texcomp:   41.45 secs 46.09 dB
-bc7enc16:       41.42 secs 46.03 dB
+Without filterbank optimizations:
+
+                Time       RGB PSNR   Y PSNR
+ispc_texcomp:   41.45 secs 46.09 dB   48.0 dB
+bc7enc16:       41.42 secs 46.03 dB   48.2 dB
+
+With filterbank optimizations enabled:
+bc7enc16:       38.78 secs 45.94 dB   48.12 dB
 
 They both have virtually the same average RGB PSNR with these settings (.06 dB is basically noise), but 
-bc7enc16 is just as fast as ispc_texcomp - even though it's not vectorized.
+bc7enc16 is just as fast as ispc_texcomp fast, even though it's not vectorized. Interestingly, our Y PSNR is better, 
+although bc7enc16 wasn't using perceptual metrics in these benchmarks. 
 
 This was a multithreaded benchmark (using OpenMP) on a dual Xeon workstation.
 ispc_texcomp was called with 64-blocks at a time and used AVX instructions.
