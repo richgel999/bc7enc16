@@ -12,7 +12,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
-// Modified by Rich Geldreich 4/26/18- fixed bugs in detexBlock128ExtractBits() and FullyDecodeEndpoints(), 
+// Modified by Rich Geldreich 4/26/18- fixed bugs in detexBlock128ExtractBits() and FullyDecodeEndpoints(),
 // compared vs. DirectXTex'c BC7 decoder for correctness.
 
 #include <stdlib.h>
@@ -403,7 +403,7 @@ static void FullyDecodeEndpoints(uint8_t * DETEX_RESTRICT endpoint_array, int nu
 	int mode, detexBlock128 * DETEX_RESTRICT block) {
 	if (mode_has_p_bits[mode]) {
 		// Mode 1 (shared P-bits) handled elsewhere.
-		// Extract end-point P-bits. 
+		// Extract end-point P-bits.
 		uint32_t bits;
 		if (block->index < 64)
 		{
@@ -602,22 +602,23 @@ static bool DecompressBlockBPTCMode1(detexBlock128 * DETEX_RESTRICT block,
 			color_index[i] = data1 & 7;	// Get three bits.
 			data1 >>= 3;
 		}
-		uint32_t *pixel32_buffer = (uint32_t *)pixel_buffer;
-		for (int i = 0; i < 16; i++) {
-			uint8_t endpoint_start[3];
-			uint8_t endpoint_end[3];
-			for (int j = 0; j < 3; j++) {
-				endpoint_start[j] = endpoint[2 * subset_index[i] * 3 + j];
-				endpoint_end[j] = endpoint[(2 * subset_index[i] + 1) * 3 + j];
-			}
-			uint32_t output;
-			output = detexPack32R8(Interpolate(endpoint_start[0], endpoint_end[0], color_index[i], 3));
-			output |= detexPack32G8(Interpolate(endpoint_start[1], endpoint_end[1], color_index[i], 3));
-			output |= detexPack32B8(Interpolate(endpoint_start[2], endpoint_end[2], color_index[i], 3));
-			output |= detexPack32A8(0xFF);
-			pixel32_buffer[i] = output;
+
+	uint32_t *pixel32_buffer = (uint32_t *)pixel_buffer;
+	for (int i = 0; i < 16; i++) {
+		uint8_t endpoint_start[3];
+		uint8_t endpoint_end[3];
+		for (int j = 0; j < 3; j++) {
+			endpoint_start[j] = endpoint[2 * subset_index[i] * 3 + j];
+			endpoint_end[j] = endpoint[(2 * subset_index[i] + 1) * 3 + j];
 		}
-		return true;
+		uint32_t output;
+		output = detexPack32R8(Interpolate(endpoint_start[0], endpoint_end[0], color_index[i], 3));
+		output |= detexPack32G8(Interpolate(endpoint_start[1], endpoint_end[1], color_index[i], 3));
+		output |= detexPack32B8(Interpolate(endpoint_start[2], endpoint_end[2], color_index[i], 3));
+		output |= detexPack32A8(0xFF);
+		pixel32_buffer[i] = output;
+	}
+	return true;
 }
 
 /* Decompress a 128-bit 4x4 pixel texture block compressed using the BPTC */
@@ -698,29 +699,29 @@ bool detexDecompressBlockBPTC(const uint8_t * DETEX_RESTRICT bitstring, uint32_t
 		uint64_t data = block.data0 >> 50;
 		data |= block.data1 << 14;
 		for (int i = 0; i < 16; i++)
-			if (i == anchor_index[subset_index[i]]) {
-				// Highest bit is zero.
-				if (index_selection_bit) {	// Implies mode == 4.
-					alpha_index[i] = data & 0x1;
-					data >>= 1;
-				}
-				else {
-					color_index[i] = data & 0x1;
-					data >>= 1;
-				}
+		if (i == anchor_index[subset_index[i]]) {
+			// Highest bit is zero.
+			if (index_selection_bit) {	// Implies mode == 4.
+				alpha_index[i] = data & 0x1;
+				data >>= 1;
 			}
 			else {
-				if (index_selection_bit) {	// Implies mode == 4.
-					alpha_index[i] = data & 0x3;
-					data >>= 2;
-				}
-				else {
-					color_index[i] = data & 0x3;
-					data >>= 2;
-				}
+				color_index[i] = data & 0x1;
+				data >>= 1;
 			}
-			// Block index is 81 at this point.
-			data1 = block.data1 >> (81 - 64);
+		}
+		else {
+			if (index_selection_bit) {	// Implies mode == 4.
+				alpha_index[i] = data & 0x3;
+				data >>= 2;
+			}
+			else {
+				color_index[i] = data & 0x3;
+				data >>= 2;
+			}
+		}
+		// Block index is 81 at this point.
+		data1 = block.data1 >> (81 - 64);
 	}
 	// Extract secondary index bits.
 	if (IB2[mode] > 0) {
