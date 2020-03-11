@@ -105,7 +105,7 @@ void bc7enc16_compress_block_init()
 
 static void compute_least_squares_endpoints_rgba(uint32_t N, const uint8_t *pSelectors, const vec4F *pSelector_weights, vec4F *pXl, vec4F *pXh, const color_quad_u8 *pColors)
 {
-	// Least squares using normal equations: http://www.cs.cornell.edu/~bindel/class/cs3220-s12/notes/lec10.pdf 
+	// Least squares using normal equations: http://www.cs.cornell.edu/~bindel/class/cs3220-s12/notes/lec10.pdf
 	// I did this in matrix form first, expanded out all the ops, then optimized it a bit.
 	float z00 = 0.0f, z01 = 0.0f, z10 = 0.0f, z11 = 0.0f;
 	float q00_r = 0.0f, q10_r = 0.0f, t_r = 0.0f;
@@ -188,7 +188,7 @@ static void compute_least_squares_endpoints_rgb(uint32_t N, const uint8_t *pSele
 	pXl->m_c[3] = 255.0f; pXh->m_c[3] = 255.0f;
 }
 
-typedef struct 
+typedef struct
 {
 	uint32_t m_num_pixels;
 	const color_quad_u8 *m_pPixels;
@@ -203,7 +203,7 @@ typedef struct
 	bc7enc16_bool m_perceptual;
 } color_cell_compressor_params;
 
-typedef struct 
+typedef struct
 {
 	uint64_t m_best_overall_err;
 	color_quad_u8 m_low_endpoint;
@@ -359,9 +359,9 @@ static uint64_t evaluate_solution(const color_quad_u8 *pLow, const color_quad_u8
 	const int dr = actualMaxColor.m_c[0] - lr;
 	const int dg = actualMaxColor.m_c[1] - lg;
 	const int db = actualMaxColor.m_c[2] - lb;
-	
+
 	uint64_t total_err = 0;
-	
+
 	if (!pParams->m_perceptual)
 	{
 		if (pParams->m_has_alpha)
@@ -476,7 +476,7 @@ static uint64_t evaluate_solution(const color_quad_u8 *pLow, const color_quad_u8
 
 		memcpy(pResults->m_pSelectors, pResults->m_pSelectors_temp, sizeof(pResults->m_pSelectors[0]) * pParams->m_num_pixels);
 	}
-				
+
 	return total_err;
 }
 
@@ -613,7 +613,7 @@ static uint64_t find_optimal_solution(uint32_t mode, vec4F xl, vec4F xh, const c
 				}
 			}
 		}
-						
+
 		fixDegenerateEndpoints(mode, &bestMinColor, &bestMaxColor, &xl, &xh, iscalep >> 1);
 
 		if ((pResults->m_best_overall_err == UINT64_MAX) || color_quad_u8_notequals(&bestMinColor, &pResults->m_low_endpoint) || color_quad_u8_notequals(&bestMaxColor, &pResults->m_high_endpoint) || (best_pbits[0] != pResults->m_pbits[0]) || (best_pbits[1] != pResults->m_pbits[1]))
@@ -671,7 +671,7 @@ static uint64_t color_cell_compression(uint32_t mode, const color_cell_compresso
 		vec4F color = vec4F_from_color(&pParams->m_pPixels[i]);
 		meanColor = vec4F_add(&meanColor, &color);
 	}
-				
+
 	vec4F meanColorScaled = vec4F_mul(&meanColor, 1.0f / (float)(pParams->m_num_pixels));
 
 	meanColor = vec4F_mul(&meanColor, 1.0f / (float)(pParams->m_num_pixels * 255.0f));
@@ -739,7 +739,7 @@ static uint64_t color_cell_compression(uint32_t mode, const color_cell_compresso
 			vec4F_set(&axis, vfr, vfg, vfb, 0);
 		}
 	}
-				
+
 	if (vec4F_dot(&axis, &axis) < .5f)
 	{
 		if (pParams->m_perceptual)
@@ -771,7 +771,7 @@ static uint64_t color_cell_compression(uint32_t mode, const color_cell_compresso
 	vec4F c1 = vec4F_add(&meanColor, &b1);
 	vec4F minColor = vec4F_saturate(&c0);
 	vec4F maxColor = vec4F_saturate(&c1);
-				
+
 	vec4F whiteVec;
 	vec4F_set_scalar(&whiteVec, 1.0f);
 	if (vec4F_dot(&minColor, &whiteVec) > vec4F_dot(&maxColor, &whiteVec))
@@ -783,7 +783,7 @@ static uint64_t color_cell_compression(uint32_t mode, const color_cell_compresso
 	// First find a solution using the block's PCA.
 	if (!find_optimal_solution(mode, minColor, maxColor, pParams, pResults))
 		return 0;
-	
+
 	if (pComp_params->m_try_least_squares)
 	{
 		// Now try to refine the solution using least squares by computing the optimal endpoints from the current selectors.
@@ -801,7 +801,7 @@ static uint64_t color_cell_compression(uint32_t mode, const color_cell_compresso
 		if (!find_optimal_solution(mode, xl, xh, pParams, pResults))
 			return 0;
 	}
-	
+
 	if (pComp_params->m_uber_level > 0)
 	{
 		// In uber level 1, try varying the selectors a little, somewhat like cluster fit would. First try incrementing the minimum selectors,
@@ -928,7 +928,7 @@ static uint64_t color_cell_compression(uint32_t mode, const color_cell_compresso
 			pResults->m_best_overall_err = avg_err;
 		}
 	}
-				
+
 	return pResults->m_best_overall_err;
 }
 
@@ -947,11 +947,11 @@ static uint64_t color_cell_compression_est(uint32_t num_pixels, const color_quad
 		if (pC->m_c[1] > hg) hg = pC->m_c[1];
 		if (pC->m_c[2] > hb) hb = pC->m_c[2];
 	}
-		
+
 	color_quad_u8 lowColor; color_quad_u8_set(&lowColor, lr, lg, lb, 0);
 	color_quad_u8 highColor; color_quad_u8_set(&highColor, hr, hg, hb, 0);
 
-	// Place endpoints at bbox diagonals and compute interpolated colors 
+	// Place endpoints at bbox diagonals and compute interpolated colors
 	const uint32_t N = 8;
 	color_quad_u8 weightedColors[8];
 
@@ -1071,7 +1071,7 @@ static uint64_t color_cell_compression_est(uint32_t num_pixels, const color_quad
 }
 
 // This table contains bitmasks indicating which "key" partitions must be best ranked before this partition is worth evaluating.
-// We first rank the best/most used 14 partitions (sorted by usefulness), record the best one found as the key partition, then use 
+// We first rank the best/most used 14 partitions (sorted by usefulness), record the best one found as the key partition, then use
 // that to control the other partitions to evaluate. The quality loss is ~.08 dB RGB PSNR, the perf gain is up to ~11% (at uber level 0).
 static const uint32_t g_partition_predictors[35] =
 {
@@ -1096,7 +1096,7 @@ static const uint32_t g_partition_predictors[35] =
 	(1 << 14) | (1 << 15),
 	(1 << 16) | (1 << 22) | (1 << 14),
 	(1 << 17) | (1 << 24) | (1 << 14),
-	(1 << 2) | (1 << 14) | (1 << 15) || (1 << 1),
+	(1 << 2) | (1 << 14) | (1 << 15) | (1 << 1),
 	UINT32_MAX,
 	(1 << 1) | (1 << 3) | (1 << 14) | (1 << 16) | (1 << 22),
 	UINT32_MAX,
@@ -1166,7 +1166,7 @@ static uint32_t estimate_partition(const color_quad_u8 *pPixels, const bc7enc16_
 		uint32_t subset_total_colors[2] = { 0, 0 };
 		for (uint32_t index = 0; index < 16; index++)
 			subset_colors[pPartition[index]][subset_total_colors[pPartition[index]]++] = pPixels[index];
-						
+
 		uint64_t total_subset_err = 0;
 		for (uint32_t subset = 0; (subset < 2) && (total_subset_err < best_err); subset++)
 			total_subset_err += color_cell_compression_est(subset_total_colors[subset], &subset_colors[subset][0], pComp_params->m_perceptual, pweights, best_err);
@@ -1299,7 +1299,7 @@ static void encode_bc7_block(void *pBlock, const bc7_optimization_results *pResu
 static void handle_alpha_block(void *pBlock, const color_quad_u8 *pPixels, const bc7enc16_compress_block_params *pComp_params, color_cell_compressor_params *pParams)
 {
 	color_cell_compressor_results results6;
-	
+
 	pParams->m_pSelector_weights = g_bc7_weights4;
 	pParams->m_pSelector_weightsx = (const vec4F *)g_bc7_weights4x;
 	pParams->m_num_selector_weights = 16;
@@ -1317,7 +1317,7 @@ static void handle_alpha_block(void *pBlock, const color_quad_u8 *pPixels, const
 	results6.m_pSelectors_temp = selectors_temp;
 
 	color_cell_compression(6, pParams, &results6, pComp_params);
-		
+
 	opt_results.m_mode = 6;
 	opt_results.m_partition = 0;
 	opt_results.m_low[0] = results6.m_low_endpoint;
@@ -1331,10 +1331,10 @@ static void handle_alpha_block(void *pBlock, const color_quad_u8 *pPixels, const
 static void handle_opaque_block(void *pBlock, const color_quad_u8 *pPixels, const bc7enc16_compress_block_params *pComp_params, color_cell_compressor_params *pParams)
 {
 	uint8_t selectors_temp[16];
-	
+
 	// Mode 6
 	bc7_optimization_results opt_results;
-	
+
 	pParams->m_pSelector_weights = g_bc7_weights4;
 	pParams->m_pSelector_weightsx = (const vec4F *)g_bc7_weights4x;
 	pParams->m_num_selector_weights = 16;
@@ -1351,14 +1351,14 @@ static void handle_opaque_block(void *pBlock, const color_quad_u8 *pPixels, cons
 	results6.m_pSelectors_temp = selectors_temp;
 
 	uint64_t best_err = color_cell_compression(6, pParams, &results6, pComp_params);
-	
+
 	opt_results.m_mode = 6;
 	opt_results.m_partition = 0;
 	opt_results.m_low[0] = results6.m_low_endpoint;
 	opt_results.m_high[0] = results6.m_high_endpoint;
 	opt_results.m_pbits[0][0] = results6.m_pbits[0];
 	opt_results.m_pbits[0][1] = results6.m_pbits[1];
-				
+
 	// Mode 1
 	if ((best_err > 0) && (pComp_params->m_max_partitions_mode1 > 0))
 	{

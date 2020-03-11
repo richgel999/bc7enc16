@@ -10,6 +10,7 @@
 #include "bc7enc16.h"
 #include "lodepng.h"
 #include "dds_defs.h"
+#include "ktx_defs.h"
 #include "bc7decomp.h"
 
 template <typename T> inline T clamp(T v, T l, T h) { if (v < l) v = l; else if (v > h) v = h; return v; }
@@ -28,14 +29,15 @@ static int print_usage()
 	fprintf(stderr, "-pX Scan X partitions in mode 1, X ranges from [0,64], use 0 to disable mode 1 entirely (faster)\n");
 	fprintf(stderr, "-g Don't write an unpacked output PNG file\n");
 	fprintf(stderr, "-y Flip source image along Y axis before packing\n");
-		
+	fprintf(stderr, "-k Generate .ktx file instead of .dds file\n");
+
 	return EXIT_FAILURE;
 }
 
 struct color_quad_u8
 {
 	uint8_t m_c[4];
-	
+
 	inline color_quad_u8(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
 		set(r, g, b, a);
@@ -54,7 +56,7 @@ struct color_quad_u8
 		m_c[3] = a;
 		return *this;
 	}
-	
+
 	inline color_quad_u8 &set(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
 		m_c[0] = r;
@@ -74,7 +76,7 @@ typedef std::vector<color_quad_u8> color_quad_u8_vec;
 class image_u8
 {
 public:
-	image_u8() : 
+	image_u8() :
 		m_width(0), m_height(0)
 	{
 	}
@@ -176,7 +178,7 @@ public:
 
 		return *this;
 	}
-		
+
 private:
 	color_quad_u8_vec m_pixels;
 	uint32_t m_width, m_height;
@@ -197,7 +199,7 @@ static bool load_png(const char *pFilename, image_u8 &img)
 
 	img.init(w, h);
 	memcpy(&img.get_pixels()[0], &pixels[0], w * h * sizeof(uint32_t));
-	
+
 	return true;
 }
 
@@ -220,7 +222,7 @@ static bool save_png(const char *pFilename, const image_u8 &img, bool save_alpha
 			for (uint32_t x = 0; x < w; x++, pDst += 3)
 				pDst[0] = img(x, y)[0], pDst[1] = img(x, y)[1], pDst[2] = img(x, y)[2];
 	}
-	
+
 	return lodepng::encode(pFilename, pixels, w, h, save_alpha ? LCT_RGBA : LCT_RGB) == 0;
 }
 
@@ -334,19 +336,18 @@ static bool save_bc7_dds(const char *pFilename, uint32_t width, uint32_t height,
 
 	desc.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
 	desc.ddpfPixelFormat.dwSize = sizeof(desc.ddpfPixelFormat);
-				
+
 	desc.ddpfPixelFormat.dwFlags |= DDPF_FOURCC;
 
 	desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_FOURCC('D', 'X', '1', '0');
 	desc.ddpfPixelFormat.dwRGBBitCount = 0;
-	
-	const uint32_t pixel_format_bpp = 8;
 
+	const uint32_t pixel_format_bpp = 8;
 	desc.lPitch = (((desc.dwWidth + 3) & ~3) * ((desc.dwHeight + 3) & ~3) * pixel_format_bpp) >> 3;
 	desc.dwFlags |= DDSD_LINEARSIZE;
 
 	fwrite(&desc, sizeof(desc), 1, pFile);
-		
+
 	DDS_HEADER_DXT10 hdr10;
 	memset(&hdr10, 0, sizeof(hdr10));
 
@@ -364,6 +365,91 @@ static bool save_bc7_dds(const char *pFilename, uint32_t width, uint32_t height,
 	if (fclose(pFile) == EOF)
 	{
 		fprintf(stderr, "Failed writing to DDS file %s!\n", pFilename);
+		return false;
+	}
+
+	return true;
+}
+
+static bool save_bc7_ktx(const char *pFilename,
+			 uint32_t width, uint32_t height,
+			 const bc7_block *pBlocks, bool srgb, bool has_alpha)
+{
+	(void) has_alpha;      // RGB without A is currently unsupported
+	FILE *pFile = NULL;
+	pFile = fopen(pFilename, "wb");
+	if (!pFile)
+	{
+		fprintf(stderr, "Failed creating file %s!\n", pFilename);
+		return false;
+	}
+
+	uint32_t keyValueSizeBrutto = 0;
+
+        //
+	// key/value pair length computation
+        //
+
+	// first key/value pair
+	uint32_t keyValueKtxOrientationSizeNetto = sizeof(ktxOrientation);
+	uint32_t keyValueKtxOrientationSizeBrutto = (keyValueKtxOrientationSizeNetto + 3) & ~3;
+	keyValueSizeBrutto += keyValueKtxOrientationSizeBrutto + 4 /* 4 is the size of the size field */;
+	// additional pairs
+        // ...
+
+	//
+	// header
+	//
+
+	struct KTX_HEADER header;
+	memcpy(header.identifier, ktxFileIdentifier, sizeof(header.identifier));
+	header.endianness = ktxEndianess;
+	header.glType = 0;             // 0: compressed texture
+	header.glTypeSize = 1;         // 1: endianess independent, especially for compressed textures
+	header.glFormat = 0;           // 0: compressed texture
+	header.glInternalFormat = (srgb) ? GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM : GL_COMPRESSED_RGBA_BPTC_UNORM;  // see table 8.14 and chapter C.2 of OpenGL 4.4. specification
+//	header.glBaseInternalFormat = (has_alpha) ? GL_RGBA : GL_RGB;   // see table 8.11
+	header.glBaseInternalFormat = GL_RGBA;   // see table 8.11
+	header.pixelWidth = width;
+	header.pixelHeight = height;
+	header.pixelDepth = 0;
+	header.numberOfArrayElements = 0;   // numberOfArrayElements denotes the number of array elements which is the number of elements in the array or the size of the array measured in elements.
+	header.numberOfFaces = 1;           // cubemap/s/arrays: 6, otherwise: 1
+	header.numberOfMipmapLevels = 1;    // non-mipmapped: 1
+	header.bytesOfKeyValueData = keyValueSizeBrutto;
+	fwrite(&header, sizeof(header), 1, pFile);
+
+	//
+	// key/value pairs
+	//
+
+	const uint8_t pad[3] = {0 , 0 , 0};
+
+	// first key/value pair
+	fwrite(&keyValueKtxOrientationSizeNetto, sizeof(keyValueKtxOrientationSizeNetto), 1, pFile);
+	fwrite(ktxOrientation, sizeof(ktxOrientation), 1, pFile);
+	uint32_t numOfPad = keyValueKtxOrientationSizeBrutto - keyValueKtxOrientationSizeNetto;
+	fwrite(pad, 1, numOfPad, pFile);
+	// additional pairs
+        // ...
+
+	//
+	// image size
+	//
+
+	const uint32_t pixel_format_bpp = 8;   // 8 bits per pixel (compressed to a quarter of that needed by RGBA)
+	const uint32_t imageSize = (((width + 3) & ~3) * ((height + 3) & ~3) * pixel_format_bpp) >> 3;
+	fwrite(&imageSize, sizeof(imageSize), 1, pFile);
+
+	//
+	// image data
+	//
+
+	fwrite(pBlocks, imageSize, 1, pFile);
+
+	if (fclose(pFile) == EOF)
+	{
+		fprintf(stderr, "Failed writing to KTX file %s!\n", pFilename);
 		return false;
 	}
 
@@ -397,7 +483,8 @@ int main(int argc, char *argv[])
 	bool perceptual = true;
 	bool no_output_png = false;
 	bool y_flip = false;
-	
+	bool ktx = false;
+
 	for (int i = 1; i < argc; i++)
 	{
 		const char *pArg = argv[i];
@@ -446,6 +533,11 @@ int main(int argc, char *argv[])
 					}
 					break;
 				}
+				case 'k':
+				{
+					ktx = true;
+					break;
+				}
 				default:
 				{
 					fprintf(stderr, "Invalid argument: %s\n", pArg);
@@ -479,7 +571,7 @@ int main(int argc, char *argv[])
 	{
 		dds_output_filename = src_filename;
 		strip_extension(dds_output_filename);
-		dds_output_filename += ".dds";
+		dds_output_filename += (ktx) ? ktxFileNameExt : ".dds";
 	}
 
 	if (!png_output_filename.size())
@@ -492,7 +584,7 @@ int main(int argc, char *argv[])
 	png_alpha_output_filename = png_output_filename;
 	strip_extension(png_alpha_output_filename);
 	png_alpha_output_filename += "_unpacked_alpha.png";
-		
+
 	image_u8 source_image;
 	if (!load_png(src_filename.c_str(), source_image))
 		return EXIT_FAILURE;
@@ -509,12 +601,12 @@ int main(int argc, char *argv[])
 
 		const uint32_t w = std::min(source_alpha_image.width(), source_image.width());
 		const uint32_t h = std::min(source_alpha_image.height(), source_image.height());
-		
+
 		for (uint32_t y = 0; y < h; y++)
 			for (uint32_t x = 0; x < w; x++)
 				source_image(x, y)[3] = source_alpha_image(x, y)[1];
 	}
-				
+
 	const uint32_t orig_width = source_image.width();
 	const uint32_t orig_height = source_image.height();
 
@@ -531,7 +623,7 @@ int main(int argc, char *argv[])
 	}
 
 	source_image.crop((source_image.width() + 3) & ~3, (source_image.height() + 3) & ~3);
-		
+
 	const uint32_t blocks_x = source_image.width() / 4;
 	const uint32_t blocks_y = source_image.height() / 4;
 
@@ -543,7 +635,7 @@ int main(int argc, char *argv[])
 		bc7enc16_compress_block_params_init_linear_weights(&pack_params);
 	pack_params.m_max_partitions_mode1 = max_partitions_to_scan;
 	pack_params.m_uber_level = uber_level;
-	
+
 	printf("Max mode 1 partitions: %u, uber level: %u, perceptual: %u\n", pack_params.m_max_partitions_mode1, pack_params.m_uber_level, perceptual);
 
 	bc7enc16_compress_block_init();
@@ -558,7 +650,7 @@ int main(int argc, char *argv[])
 			color_quad_u8 pixels[16];
 
 			source_image.get_block(bx, by, 4, 4, pixels);
-			
+
 			bc7_block *pBlock = &packed_image[bx + by * blocks_x];
 
 			if (bc7enc16_compress_block(pBlock, pixels, &pack_params))
@@ -566,21 +658,34 @@ int main(int argc, char *argv[])
 		}
 
 		if ((by & 63) == 0)
+		{
 			printf(".");
+			fflush(stdout);
+		}
 	}
-	
+
 	clock_t end_t = clock();
-	
+
 	printf("\nTotal time: %f secs\n", (double)(end_t - start_t) / CLOCKS_PER_SEC);
-		
+
 	if (has_alpha)
 		printf("Source image had an alpha channel.\n");
-	
+
 	bool failed = false;
-	if (!save_bc7_dds(dds_output_filename.c_str(), orig_width, orig_height, &packed_image[0], perceptual))
-		failed = true;
+	if (ktx)
+	{
+		if (!save_bc7_ktx(dds_output_filename.c_str(), orig_width, orig_height, &packed_image[0], perceptual, has_alpha))
+			failed = true;
+		else
+			printf("Wrote KTX file %s\n", dds_output_filename.c_str());
+	}
 	else
-		printf("Wrote DDS file %s\n", dds_output_filename.c_str());
+	{
+		if (!save_bc7_dds(dds_output_filename.c_str(), orig_width, orig_height, &packed_image[0], perceptual))
+			failed = true;
+		else
+			printf("Wrote DDS file %s\n", dds_output_filename.c_str());
+	}
 
 	if ((!no_output_png) && (png_output_filename.size()))
 	{
@@ -610,7 +715,7 @@ int main(int argc, char *argv[])
 		image_metrics rgba_metrics;
 		rgba_metrics.compute(source_image, unpacked_image, 0, 4);
 		printf("RGBA  Max error: %3.0f RMSE: %f PSNR %03.02f dB\n", rgba_metrics.m_max, rgba_metrics.m_root_mean_squared, rgba_metrics.m_peak_snr);
-						
+
 		image_metrics a_metrics;
 		a_metrics.compute(source_image, unpacked_image, 3, 1);
 		printf("Alpha Max error: %3.0f RMSE: %f PSNR %03.02f dB\n", a_metrics.m_max, a_metrics.m_root_mean_squared, a_metrics.m_peak_snr);
@@ -634,6 +739,6 @@ int main(int argc, char *argv[])
 				printf("Wrote PNG file %s\n", png_alpha_output_filename.c_str());
 		}
 	}
-		
+
 	return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }
