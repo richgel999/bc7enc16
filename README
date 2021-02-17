@@ -1,3 +1,7 @@
+Note: Since this repo was created, we've released two new codecs with better BC7 encoders:
+https://github.com/richgel999/bc7enc_rdo
+https://github.com/BinomialLLC/bc7e
+
 bc7enc16 - Fast, single source file BC7/BPTC GPU texture encoder with perceptual colorspace metric support
 
 This project is basically a demo of some of the techniques we use in Basis BC7,
