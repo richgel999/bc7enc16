@@ -1,18 +1,12 @@
+bc7enc16 - Fast, single source file BC7/BPTC GPU texture encoder with perceptual colorspace metric support
+
 Note: Since this repo was created, we've released two new codecs with better BC7 encoders:
 https://github.com/richgel999/bc7enc_rdo
 https://github.com/BinomialLLC/bc7e
 
-bc7enc16 - Fast, single source file BC7/BPTC GPU texture encoder with perceptual colorspace metric support
-
-This project is basically a demo of some of the techniques we use in Basis BC7,
-which is Binomial's state of the art vectorized BC7 encoder. Basis BC7 is the
-highest quality and fastest CPU BC7 encoder available (2-3x faster than
-ispc_texcomp). It supports all modes and linear/perceptual colorspace metrics.
-Licensees get full ISPC source code so they can customize the codec as needed.
-
 bc7enc16 purposely only supports modes 1 and 6. This is a strong opaque texture encoder, with basic
 support for alpha channels (using mode 6). The intended use case is opaque
-textures, or opaque textures with relatively simple alpha channels.
+textures, or opaque textures with relatively simple alpha channels. It also acts as a relatively simple to understand example.
 
 If alpha is highly correlated compared to RGB, or alpha is relatively simple
 (think simple masks where lots of blocks are either all-transparent or
