@@ -5,8 +5,8 @@ https://github.com/richgel999/bc7enc_rdo
 https://github.com/BinomialLLC/bc7e
 
 bc7enc16 purposely only supports modes 1 and 6. This is a strong opaque texture encoder, with basic
-support for alpha channels (using mode 6). The intended use case is opaque
-textures, or opaque textures with relatively simple alpha channels. It also acts as a relatively simple to understand example.
+support for alpha channels (using mode 6). The intended use case is opaque textures, or opaque textures 
+with relatively simple alpha channels. It also acts as a relatively simple to understand example.
 
 If alpha is highly correlated compared to RGB, or alpha is relatively simple
 (think simple masks where lots of blocks are either all-transparent or
